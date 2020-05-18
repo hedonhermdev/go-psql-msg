@@ -1,0 +1,13 @@
+database:
+  host: "localhost"
+  port: 5432
+  dbname: "messages"
+  user: "userone"
+  password: "passwordone"
+kafka:
+  host: "localhost"
+  port: "9999"
+channels:
+  - "events"
+  - "lmao"
+  - "moreevents"

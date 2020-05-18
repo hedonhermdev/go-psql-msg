@@ -6,25 +6,31 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/hedonhermdev/go-psql-msg/config"
 	"github.com/hedonhermdev/go-psql-msg/db"
-	"github.com/hedonhermdev/go-psql-msg/db/listener"
 )
 
 func main() {
 
-	conn_info := db.LoadFromEnv()
-	conn_string := conn_info.ConnString()
-
-	if len(os.Args) == 1 {
-		log.Fatal("No channel names provided to listen on")
+	conf_file, err := os.Open("config.yaml")
+	if err != nil {
+		log.Fatal("Could not open config file")
+	}
+	conf, err := config.ParseConfig(conf_file)
+	if err != nil {
+		log.Fatal("Could not parse config from config.yaml")
 	}
 
-	events := make(chan listener.Event)
+	events := make(chan db.Event)
 	errors := make(chan error)
 
-	for _, chName := range os.Args[1:] {
+	if len(conf.Channels) == 0 {
+		log.Fatal("No channels to listen on. Exiting...")
+	}
+
+	for _, chName := range conf.Channels {
 		fmt.Printf("Listening on channel %s...\n", chName)
-		l := listener.NewJSONListener(conn_string)
+		l := db.NewJSONListener(conf.Database)
 		go l.Listen(chName, events, errors)
 	}
 
